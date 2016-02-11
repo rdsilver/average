@@ -9,7 +9,6 @@ var fountains = {};
 function setup() {
   var myCanvas = createCanvas(window.innerWidth, window.innerHeight);
   myCanvas.parent('sketch');
-  background(255);
 
   grid = new Grid();
   noStroke();
@@ -22,11 +21,14 @@ function draw() {
 
 function Grid() {
   this.size = cell_size;
-  this.grid_w = Math.round(width/this.size);
-  this.grid_h = Math.round(height/this.size);
+
+  // +1 so the entire page is covered 
+  this.grid_w = Math.round(width/this.size) + 1;
+  this.grid_h = Math.round(height/this.size) + 1;
+
   this.grid = set2dArrayToZero(createArray(this.grid_w, this.grid_h));
   this.holder_grid = set2dArrayToZero(createArray(this.grid_w, this.grid_h));
-  this.temp_grid = 0;
+  this.temp_grid;
 
   this.step = function() {
     this.temp_grid = this.holder_grid;
@@ -37,10 +39,13 @@ function Grid() {
         rgb = this.get_new_rgb(x,y, num_neighbors, rgb);
         this.temp_grid[x][y] = rgb;
         this.fountain_exception(var_key, x, y);
-        rgb = this.temp_grid[x][y];
+        //rgb = this.temp_grid[x][y];
 
         // Draw Cells
-        fill(rgb[0], rgb[1], rgb[2]);
+        // This Math.sin Math.abs calcs makes it psychedelic 
+        fill(Math.abs(Math.sin(frameCount/rgb[0])) * 255, Math.abs(Math.sin(frameCount/rgb[1])) * 255, Math.abs(Math.sin(frameCount/rgb[2])) * 255);
+        //fill(Math.abs(Math.sin(frameCount/rgb[0])) * 255, Math.abs(Math.sin(frameCount/rgb[1])) * 255, rgb[2]);
+        //fill(Math.abs(Math.sin(frameCount/rgb[0])) * 255, rgb[1], rgb[2]);
         rect(x*this.size, y*this.size, this.size, this.size);
       }
 
@@ -75,11 +80,10 @@ function Grid() {
   }
 
   this.fountain_exception = function(var_key, x, y) {
-    var_key = ""+x+" "+y;
+    var_key = `${x} ${y}`;
 
-    if (var_key in fountains) {
+    if (var_key in fountains) 
       this.grid[x][y] = fountains[var_key];
-    }
   }
 
 }; 
@@ -87,19 +91,19 @@ function Grid() {
 
 function set2dArrayToZero(array) {
   for (x=0; x<array.length; x++) 
-      for (y=0; y<array[x].length; y++) 
-        array[x][y] = [255, 255, 255];
+    for (y=0; y<array[x].length; y++) 
+      array[x][y] = [255, 255, 255];
 
   return array;
 }
 
 function createArray(length) {
     var arr = new Array(length || 0),
-        i = length;
+    i = length;
 
     if (arguments.length > 1) {
-        var args = Array.prototype.slice.call(arguments, 1);
-        while(i--) arr[length-1 - i] = createArray.apply(this, args);
+      var args = Array.prototype.slice.call(arguments, 1);
+      while(i--) arr[length-1 - i] = createArray.apply(this, args);
     }
 
     return arr;
@@ -108,22 +112,21 @@ function createArray(length) {
 function mouseClicked() {
     var x = Math.floor(mouseX/cell_size);
     var y = Math.floor(mouseY/cell_size);
-    var var_key = ""+x+" "+y;
+    var var_key = `${x} ${y}`;
 
     if (var_key in fountains) 
       delete fountains[var_key];
     
     var num_fountains = _.keys(fountains).length;
     if (num_fountains%3 == 0)
-      fountains[var_key] = [153, 204, 255];
+      fountains[var_key] = [153, 0, 255];
     else if (num_fountains%3 == 1)
-      fountains[var_key] = [255, 204, 0];
+      fountains[var_key] = [255, 153, 0];
     else 
-      fountains[var_key] = [153, 204, 153];
+      fountains[var_key] = [0, 255, 153];
 
 }
 
-/* needs fixing */
 function windowResized() {
   resizeCanvas(window.innerWidth, window.innerHeight);
   grid = new Grid();
